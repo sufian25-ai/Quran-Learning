@@ -1,0 +1,153 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\QuranSurah;
+use App\Models\TajweedRule;
+use Illuminate\Database\Seeder;
+
+class QuranSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // Seed all 114 Surahs
+        $surahs = [
+            ['surah_number' => 1, 'name_arabic' => 'الفاتحة', 'name_english' => 'Al-Fatihah', 'name_transliteration' => 'Al-Faatiha', 'name_bangla' => 'আল-ফাতিহা', 'total_ayahs' => 7, 'revelation_type' => 'meccan', 'revelation_order' => 5],
+            ['surah_number' => 2, 'name_arabic' => 'البقرة', 'name_english' => 'Al-Baqarah', 'name_transliteration' => 'Al-Baqara', 'name_bangla' => 'আল-বাক্বারাহ', 'total_ayahs' => 286, 'revelation_type' => 'medinan', 'revelation_order' => 87],
+            ['surah_number' => 3, 'name_arabic' => 'آل عمران', 'name_english' => 'Aal-E-Imran', 'name_transliteration' => 'Aal-i-Imraan', 'name_bangla' => 'আলে ইমরান', 'total_ayahs' => 200, 'revelation_type' => 'medinan', 'revelation_order' => 89],
+            ['surah_number' => 4, 'name_arabic' => 'النساء', 'name_english' => 'An-Nisa', 'name_transliteration' => 'An-Nisaa', 'name_bangla' => 'আন-নিসা', 'total_ayahs' => 176, 'revelation_type' => 'medinan', 'revelation_order' => 92],
+            ['surah_number' => 5, 'name_arabic' => 'المائدة', 'name_english' => 'Al-Maidah', 'name_transliteration' => 'Al-Maaida', 'name_bangla' => 'আল-মায়িদাহ', 'total_ayahs' => 120, 'revelation_type' => 'medinan', 'revelation_order' => 112],
+            ['surah_number' => 6, 'name_arabic' => 'الأنعام', 'name_english' => 'Al-Anam', 'name_transliteration' => 'Al-An\'aam', 'name_bangla' => 'আল-আনআম', 'total_ayahs' => 165, 'revelation_type' => 'meccan', 'revelation_order' => 55],
+            ['surah_number' => 7, 'name_arabic' => 'الأعراف', 'name_english' => 'Al-Araf', 'name_transliteration' => 'Al-A\'raaf', 'name_bangla' => 'আল-আরাফ', 'total_ayahs' => 206, 'revelation_type' => 'meccan', 'revelation_order' => 39],
+            ['surah_number' => 8, 'name_arabic' => 'الأنفال', 'name_english' => 'Al-Anfal', 'name_transliteration' => 'Al-Anfaal', 'name_bangla' => 'আল-আনফাল', 'total_ayahs' => 75, 'revelation_type' => 'medinan', 'revelation_order' => 88],
+            ['surah_number' => 9, 'name_arabic' => 'التوبة', 'name_english' => 'At-Tawbah', 'name_transliteration' => 'At-Tawba', 'name_bangla' => 'আত-তাওবা', 'total_ayahs' => 129, 'revelation_type' => 'medinan', 'revelation_order' => 113],
+            ['surah_number' => 10, 'name_arabic' => 'يونس', 'name_english' => 'Yunus', 'name_transliteration' => 'Yunus', 'name_bangla' => 'ইউনুস', 'total_ayahs' => 109, 'revelation_type' => 'meccan', 'revelation_order' => 51],
+            ['surah_number' => 11, 'name_arabic' => 'هود', 'name_english' => 'Hud', 'name_transliteration' => 'Hud', 'name_bangla' => 'হুদ', 'total_ayahs' => 123, 'revelation_type' => 'meccan', 'revelation_order' => 52],
+            ['surah_number' => 12, 'name_arabic' => 'يوسف', 'name_english' => 'Yusuf', 'name_transliteration' => 'Yusuf', 'name_bangla' => 'ইউসুফ', 'total_ayahs' => 111, 'revelation_type' => 'meccan', 'revelation_order' => 53],
+            ['surah_number' => 13, 'name_arabic' => 'الرعد', 'name_english' => 'Ar-Ra\'d', 'name_transliteration' => 'Ar-Ra\'d', 'name_bangla' => 'আর-রাদ', 'total_ayahs' => 43, 'revelation_type' => 'medinan', 'revelation_order' => 96],
+            ['surah_number' => 14, 'name_arabic' => 'إبراهيم', 'name_english' => 'Ibrahim', 'name_transliteration' => 'Ibrahim', 'name_bangla' => 'ইব্রাহীম', 'total_ayahs' => 52, 'revelation_type' => 'meccan', 'revelation_order' => 72],
+            ['surah_number' => 15, 'name_arabic' => 'الحجر', 'name_english' => 'Al-Hijr', 'name_transliteration' => 'Al-Hijr', 'name_bangla' => 'আল-হিজর', 'total_ayahs' => 99, 'revelation_type' => 'meccan', 'revelation_order' => 54],
+            ['surah_number' => 16, 'name_arabic' => 'النحل', 'name_english' => 'An-Nahl', 'name_transliteration' => 'An-Nahl', 'name_bangla' => 'আন-নাহল', 'total_ayahs' => 128, 'revelation_type' => 'meccan', 'revelation_order' => 70],
+            ['surah_number' => 17, 'name_arabic' => 'الإسراء', 'name_english' => 'Al-Isra', 'name_transliteration' => 'Al-Israa', 'name_bangla' => 'আল-ইসরা', 'total_ayahs' => 111, 'revelation_type' => 'meccan', 'revelation_order' => 50],
+            ['surah_number' => 18, 'name_arabic' => 'الكهف', 'name_english' => 'Al-Kahf', 'name_transliteration' => 'Al-Kahf', 'name_bangla' => 'আল-কাহফ', 'total_ayahs' => 110, 'revelation_type' => 'meccan', 'revelation_order' => 69],
+            ['surah_number' => 19, 'name_arabic' => 'مريم', 'name_english' => 'Maryam', 'name_transliteration' => 'Maryam', 'name_bangla' => 'মারইয়াম', 'total_ayahs' => 98, 'revelation_type' => 'meccan', 'revelation_order' => 44],
+            ['surah_number' => 20, 'name_arabic' => 'طه', 'name_english' => 'Taha', 'name_transliteration' => 'Taa-Haa', 'name_bangla' => 'ত্বা-হা', 'total_ayahs' => 135, 'revelation_type' => 'meccan', 'revelation_order' => 45],
+            ['surah_number' => 21, 'name_arabic' => 'الأنبياء', 'name_english' => 'Al-Anbiya', 'name_transliteration' => 'Al-Anbiyaa', 'name_bangla' => 'আল-আম্বিয়া', 'total_ayahs' => 112, 'revelation_type' => 'meccan', 'revelation_order' => 73],
+            ['surah_number' => 22, 'name_arabic' => 'الحج', 'name_english' => 'Al-Hajj', 'name_transliteration' => 'Al-Hajj', 'name_bangla' => 'আল-হাজ্জ', 'total_ayahs' => 78, 'revelation_type' => 'medinan', 'revelation_order' => 103],
+            ['surah_number' => 23, 'name_arabic' => 'المؤمنون', 'name_english' => 'Al-Muminun', 'name_transliteration' => 'Al-Muminoon', 'name_bangla' => 'আল-মুমিনুন', 'total_ayahs' => 118, 'revelation_type' => 'meccan', 'revelation_order' => 74],
+            ['surah_number' => 24, 'name_arabic' => 'النور', 'name_english' => 'An-Nur', 'name_transliteration' => 'An-Noor', 'name_bangla' => 'আন-নূর', 'total_ayahs' => 64, 'revelation_type' => 'medinan', 'revelation_order' => 102],
+            ['surah_number' => 25, 'name_arabic' => 'الفرقان', 'name_english' => 'Al-Furqan', 'name_transliteration' => 'Al-Furqaan', 'name_bangla' => 'আল-ফুরক্বান', 'total_ayahs' => 77, 'revelation_type' => 'meccan', 'revelation_order' => 42],
+            ['surah_number' => 26, 'name_arabic' => 'الشعراء', 'name_english' => 'Ash-Shuara', 'name_transliteration' => 'Ash-Shu\'araa', 'name_bangla' => 'আশ-শুআরা', 'total_ayahs' => 227, 'revelation_type' => 'meccan', 'revelation_order' => 47],
+            ['surah_number' => 27, 'name_arabic' => 'النمل', 'name_english' => 'An-Naml', 'name_transliteration' => 'An-Naml', 'name_bangla' => 'আন-নামল', 'total_ayahs' => 93, 'revelation_type' => 'meccan', 'revelation_order' => 48],
+            ['surah_number' => 28, 'name_arabic' => 'القصص', 'name_english' => 'Al-Qasas', 'name_transliteration' => 'Al-Qasas', 'name_bangla' => 'আল-ক্বাসাস', 'total_ayahs' => 88, 'revelation_type' => 'meccan', 'revelation_order' => 49],
+            ['surah_number' => 29, 'name_arabic' => 'العنكبوت', 'name_english' => 'Al-Ankabut', 'name_transliteration' => 'Al-Ankaboot', 'name_bangla' => 'আল-আনকাবুত', 'total_ayahs' => 69, 'revelation_type' => 'meccan', 'revelation_order' => 85],
+            ['surah_number' => 30, 'name_arabic' => 'الروم', 'name_english' => 'Ar-Rum', 'name_transliteration' => 'Ar-Room', 'name_bangla' => 'আর-রূম', 'total_ayahs' => 60, 'revelation_type' => 'meccan', 'revelation_order' => 84],
+            ['surah_number' => 31, 'name_arabic' => 'لقمان', 'name_english' => 'Luqman', 'name_transliteration' => 'Luqmaan', 'name_bangla' => 'লুক্বমান', 'total_ayahs' => 34, 'revelation_type' => 'meccan', 'revelation_order' => 57],
+            ['surah_number' => 32, 'name_arabic' => 'السجدة', 'name_english' => 'As-Sajdah', 'name_transliteration' => 'As-Sajda', 'name_bangla' => 'আস-সাজদাহ', 'total_ayahs' => 30, 'revelation_type' => 'meccan', 'revelation_order' => 75],
+            ['surah_number' => 33, 'name_arabic' => 'الأحزاب', 'name_english' => 'Al-Ahzab', 'name_transliteration' => 'Al-Ahzaab', 'name_bangla' => 'আল-আহযাব', 'total_ayahs' => 73, 'revelation_type' => 'medinan', 'revelation_order' => 90],
+            ['surah_number' => 34, 'name_arabic' => 'سبإ', 'name_english' => 'Saba', 'name_transliteration' => 'Saba', 'name_bangla' => 'সাবা', 'total_ayahs' => 54, 'revelation_type' => 'meccan', 'revelation_order' => 58],
+            ['surah_number' => 35, 'name_arabic' => 'فاطر', 'name_english' => 'Fatir', 'name_transliteration' => 'Faatir', 'name_bangla' => 'ফাতির', 'total_ayahs' => 45, 'revelation_type' => 'meccan', 'revelation_order' => 43],
+            ['surah_number' => 36, 'name_arabic' => 'يس', 'name_english' => 'Ya-Sin', 'name_transliteration' => 'Yaseen', 'name_bangla' => 'ইয়াসীন', 'total_ayahs' => 83, 'revelation_type' => 'meccan', 'revelation_order' => 41],
+            ['surah_number' => 37, 'name_arabic' => 'الصافات', 'name_english' => 'As-Saffat', 'name_transliteration' => 'As-Saaffaat', 'name_bangla' => 'আস-সাফফাত', 'total_ayahs' => 182, 'revelation_type' => 'meccan', 'revelation_order' => 56],
+            ['surah_number' => 38, 'name_arabic' => 'ص', 'name_english' => 'Sad', 'name_transliteration' => 'Saad', 'name_bangla' => 'সাদ', 'total_ayahs' => 88, 'revelation_type' => 'meccan', 'revelation_order' => 38],
+            ['surah_number' => 39, 'name_arabic' => 'الزمر', 'name_english' => 'Az-Zumar', 'name_transliteration' => 'Az-Zumar', 'name_bangla' => 'আয-যুমার', 'total_ayahs' => 75, 'revelation_type' => 'meccan', 'revelation_order' => 59],
+            ['surah_number' => 40, 'name_arabic' => 'غافر', 'name_english' => 'Ghafir', 'name_transliteration' => 'Ghaafir', 'name_bangla' => 'গাফির', 'total_ayahs' => 85, 'revelation_type' => 'meccan', 'revelation_order' => 60],
+            ['surah_number' => 41, 'name_arabic' => 'فصلت', 'name_english' => 'Fussilat', 'name_transliteration' => 'Fussilat', 'name_bangla' => 'ফুসস্বিলাত', 'total_ayahs' => 54, 'revelation_type' => 'meccan', 'revelation_order' => 61],
+            ['surah_number' => 42, 'name_arabic' => 'الشورى', 'name_english' => 'Ash-Shura', 'name_transliteration' => 'Ash-Shooraa', 'name_bangla' => 'আশ-শূরা', 'total_ayahs' => 53, 'revelation_type' => 'meccan', 'revelation_order' => 62],
+            ['surah_number' => 43, 'name_arabic' => 'الزخرف', 'name_english' => 'Az-Zukhruf', 'name_transliteration' => 'Az-Zukhruf', 'name_bangla' => 'আয-যুখরুফ', 'total_ayahs' => 89, 'revelation_type' => 'meccan', 'revelation_order' => 63],
+            ['surah_number' => 44, 'name_arabic' => 'الدخان', 'name_english' => 'Ad-Dukhan', 'name_transliteration' => 'Ad-Dukhaan', 'name_bangla' => 'আদ-দুখান', 'total_ayahs' => 59, 'revelation_type' => 'meccan', 'revelation_order' => 64],
+            ['surah_number' => 45, 'name_arabic' => 'الجاثية', 'name_english' => 'Al-Jathiyah', 'name_transliteration' => 'Al-Jaathiya', 'name_bangla' => 'আল-জাসিয়াহ', 'total_ayahs' => 37, 'revelation_type' => 'meccan', 'revelation_order' => 65],
+            ['surah_number' => 46, 'name_arabic' => 'الأحقاف', 'name_english' => 'Al-Ahqaf', 'name_transliteration' => 'Al-Ahqaaf', 'name_bangla' => 'আল-আহক্বাফ', 'total_ayahs' => 35, 'revelation_type' => 'meccan', 'revelation_order' => 66],
+            ['surah_number' => 47, 'name_arabic' => 'محمد', 'name_english' => 'Muhammad', 'name_transliteration' => 'Muhammad', 'name_bangla' => 'মুহাম্মাদ', 'total_ayahs' => 38, 'revelation_type' => 'medinan', 'revelation_order' => 95],
+            ['surah_number' => 48, 'name_arabic' => 'الفتح', 'name_english' => 'Al-Fath', 'name_transliteration' => 'Al-Fath', 'name_bangla' => 'আল-ফাতহ', 'total_ayahs' => 29, 'revelation_type' => 'medinan', 'revelation_order' => 111],
+            ['surah_number' => 49, 'name_arabic' => 'الحجرات', 'name_english' => 'Al-Hujurat', 'name_transliteration' => 'Al-Hujuraat', 'name_bangla' => 'আল-হুজুরাত', 'total_ayahs' => 18, 'revelation_type' => 'medinan', 'revelation_order' => 106],
+            ['surah_number' => 50, 'name_arabic' => 'ق', 'name_english' => 'Qaf', 'name_transliteration' => 'Qaaf', 'name_bangla' => 'ক্বাফ', 'total_ayahs' => 45, 'revelation_type' => 'meccan', 'revelation_order' => 34],
+            ['surah_number' => 51, 'name_arabic' => 'الذاريات', 'name_english' => 'Adh-Dhariyat', 'name_transliteration' => 'Adh-Dhaariyat', 'name_bangla' => 'আয-যারিয়াত', 'total_ayahs' => 60, 'revelation_type' => 'meccan', 'revelation_order' => 67],
+            ['surah_number' => 52, 'name_arabic' => 'الطور', 'name_english' => 'At-Tur', 'name_transliteration' => 'At-Toor', 'name_bangla' => 'আত-তূর', 'total_ayahs' => 49, 'revelation_type' => 'meccan', 'revelation_order' => 76],
+            ['surah_number' => 53, 'name_arabic' => 'النجم', 'name_english' => 'An-Najm', 'name_transliteration' => 'An-Najm', 'name_bangla' => 'আন-নাজম', 'total_ayahs' => 62, 'revelation_type' => 'meccan', 'revelation_order' => 23],
+            ['surah_number' => 54, 'name_arabic' => 'القمر', 'name_english' => 'Al-Qamar', 'name_transliteration' => 'Al-Qamar', 'name_bangla' => 'আল-ক্বামার', 'total_ayahs' => 55, 'revelation_type' => 'meccan', 'revelation_order' => 37],
+            ['surah_number' => 55, 'name_arabic' => 'الرحمن', 'name_english' => 'Ar-Rahman', 'name_transliteration' => 'Ar-Rahmaan', 'name_bangla' => 'আর-রহমান', 'total_ayahs' => 78, 'revelation_type' => 'medinan', 'revelation_order' => 97],
+            ['surah_number' => 56, 'name_arabic' => 'الواقعة', 'name_english' => 'Al-Waqiah', 'name_transliteration' => 'Al-Waaqia', 'name_bangla' => 'আল-ওয়াক্বিয়াহ', 'total_ayahs' => 96, 'revelation_type' => 'meccan', 'revelation_order' => 46],
+            ['surah_number' => 57, 'name_arabic' => 'الحديد', 'name_english' => 'Al-Hadid', 'name_transliteration' => 'Al-Hadeed', 'name_bangla' => 'আল-হাদীদ', 'total_ayahs' => 29, 'revelation_type' => 'medinan', 'revelation_order' => 94],
+            ['surah_number' => 58, 'name_arabic' => 'المجادلة', 'name_english' => 'Al-Mujadila', 'name_transliteration' => 'Al-Mujaadila', 'name_bangla' => 'আল-মুজাদালাহ', 'total_ayahs' => 22, 'revelation_type' => 'medinan', 'revelation_order' => 105],
+            ['surah_number' => 59, 'name_arabic' => 'الحشر', 'name_english' => 'Al-Hashr', 'name_transliteration' => 'Al-Hashr', 'name_bangla' => 'আল-হাশর', 'total_ayahs' => 24, 'revelation_type' => 'medinan', 'revelation_order' => 101],
+            ['surah_number' => 60, 'name_arabic' => 'الممتحنة', 'name_english' => 'Al-Mumtahanah', 'name_transliteration' => 'Al-Mumtahana', 'name_bangla' => 'আল-মুমতাহিনাহ', 'total_ayahs' => 13, 'revelation_type' => 'medinan', 'revelation_order' => 91],
+            ['surah_number' => 61, 'name_arabic' => 'الصف', 'name_english' => 'As-Saff', 'name_transliteration' => 'As-Saff', 'name_bangla' => 'আস-সাফ', 'total_ayahs' => 14, 'revelation_type' => 'medinan', 'revelation_order' => 109],
+            ['surah_number' => 62, 'name_arabic' => 'الجمعة', 'name_english' => 'Al-Jumuah', 'name_transliteration' => 'Al-Jumu\'a', 'name_bangla' => 'আল-জুমুআহ', 'total_ayahs' => 11, 'revelation_type' => 'medinan', 'revelation_order' => 110],
+            ['surah_number' => 63, 'name_arabic' => 'المنافقون', 'name_english' => 'Al-Munafiqun', 'name_transliteration' => 'Al-Munaafiqoon', 'name_bangla' => 'আল-মুনাফিক্বূন', 'total_ayahs' => 11, 'revelation_type' => 'medinan', 'revelation_order' => 104],
+            ['surah_number' => 64, 'name_arabic' => 'التغابن', 'name_english' => 'At-Taghabun', 'name_transliteration' => 'At-Taghaabun', 'name_bangla' => 'আত-তাগাবুন', 'total_ayahs' => 18, 'revelation_type' => 'medinan', 'revelation_order' => 108],
+            ['surah_number' => 65, 'name_arabic' => 'الطلاق', 'name_english' => 'At-Talaq', 'name_transliteration' => 'At-Talaaq', 'name_bangla' => 'আত-তালাক্ব', 'total_ayahs' => 12, 'revelation_type' => 'medinan', 'revelation_order' => 99],
+            ['surah_number' => 66, 'name_arabic' => 'التحريم', 'name_english' => 'At-Tahrim', 'name_transliteration' => 'At-Tahreem', 'name_bangla' => 'আত-তাহরীম', 'total_ayahs' => 12, 'revelation_type' => 'medinan', 'revelation_order' => 107],
+            ['surah_number' => 67, 'name_arabic' => 'الملك', 'name_english' => 'Al-Mulk', 'name_transliteration' => 'Al-Mulk', 'name_bangla' => 'আল-মুলক', 'total_ayahs' => 30, 'revelation_type' => 'meccan', 'revelation_order' => 77],
+            ['surah_number' => 68, 'name_arabic' => 'القلم', 'name_english' => 'Al-Qalam', 'name_transliteration' => 'Al-Qalam', 'name_bangla' => 'আল-ক্বলম', 'total_ayahs' => 52, 'revelation_type' => 'meccan', 'revelation_order' => 2],
+            ['surah_number' => 69, 'name_arabic' => 'الحاقة', 'name_english' => 'Al-Haqqah', 'name_transliteration' => 'Al-Haaqqa', 'name_bangla' => 'আল-হাক্বক্বা', 'total_ayahs' => 52, 'revelation_type' => 'meccan', 'revelation_order' => 78],
+            ['surah_number' => 70, 'name_arabic' => 'المعارج', 'name_english' => 'Al-Ma\'arij', 'name_transliteration' => 'Al-Ma\'aarij', 'name_bangla' => 'আল-মাআরিজ', 'total_ayahs' => 44, 'revelation_type' => 'meccan', 'revelation_order' => 79],
+            ['surah_number' => 71, 'name_arabic' => 'نوح', 'name_english' => 'Nuh', 'name_transliteration' => 'Nooh', 'name_bangla' => 'নূহ', 'total_ayahs' => 28, 'revelation_type' => 'meccan', 'revelation_order' => 71],
+            ['surah_number' => 72, 'name_arabic' => 'الجن', 'name_english' => 'Al-Jinn', 'name_transliteration' => 'Al-Jinn', 'name_bangla' => 'আল-জিন', 'total_ayahs' => 28, 'revelation_type' => 'meccan', 'revelation_order' => 40],
+            ['surah_number' => 73, 'name_arabic' => 'المزمل', 'name_english' => 'Al-Muzzammil', 'name_transliteration' => 'Al-Muzzammil', 'name_bangla' => 'আল-মুযযাম্মিল', 'total_ayahs' => 20, 'revelation_type' => 'meccan', 'revelation_order' => 3],
+            ['surah_number' => 74, 'name_arabic' => 'المدثر', 'name_english' => 'Al-Muddaththir', 'name_transliteration' => 'Al-Muddaththir', 'name_bangla' => 'আল-মুদ্দাসসির', 'total_ayahs' => 56, 'revelation_type' => 'meccan', 'revelation_order' => 4],
+            ['surah_number' => 75, 'name_arabic' => 'القيامة', 'name_english' => 'Al-Qiyamah', 'name_transliteration' => 'Al-Qiyaama', 'name_bangla' => 'আল-ক্বিয়ামাহ', 'total_ayahs' => 40, 'revelation_type' => 'meccan', 'revelation_order' => 31],
+            ['surah_number' => 76, 'name_arabic' => 'الإنسان', 'name_english' => 'Al-Insan', 'name_transliteration' => 'Al-Insaan', 'name_bangla' => 'আল-ইনসান', 'total_ayahs' => 31, 'revelation_type' => 'medinan', 'revelation_order' => 98],
+            ['surah_number' => 77, 'name_arabic' => 'المرسلات', 'name_english' => 'Al-Mursalat', 'name_transliteration' => 'Al-Mursalaat', 'name_bangla' => 'আল-মুরসালাত', 'total_ayahs' => 50, 'revelation_type' => 'meccan', 'revelation_order' => 33],
+            ['surah_number' => 78, 'name_arabic' => 'النبإ', 'name_english' => 'An-Naba', 'name_transliteration' => 'An-Naba', 'name_bangla' => 'আন-নাবা', 'total_ayahs' => 40, 'revelation_type' => 'meccan', 'revelation_order' => 80],
+            ['surah_number' => 79, 'name_arabic' => 'النازعات', 'name_english' => 'An-Naziat', 'name_transliteration' => 'An-Naazi\'aat', 'name_bangla' => 'আন-নাযিআত', 'total_ayahs' => 46, 'revelation_type' => 'meccan', 'revelation_order' => 81],
+            ['surah_number' => 80, 'name_arabic' => 'عبس', 'name_english' => 'Abasa', 'name_transliteration' => '\'Abasa', 'name_bangla' => 'আবাসা', 'total_ayahs' => 42, 'revelation_type' => 'meccan', 'revelation_order' => 24],
+            ['surah_number' => 81, 'name_arabic' => 'التكوير', 'name_english' => 'At-Takwir', 'name_transliteration' => 'At-Takweer', 'name_bangla' => 'আত-তাকভীর', 'total_ayahs' => 29, 'revelation_type' => 'meccan', 'revelation_order' => 7],
+            ['surah_number' => 82, 'name_arabic' => 'الإنفطار', 'name_english' => 'Al-Infitar', 'name_transliteration' => 'Al-Infitaar', 'name_bangla' => 'আল-ইনফিতার', 'total_ayahs' => 19, 'revelation_type' => 'meccan', 'revelation_order' => 82],
+            ['surah_number' => 83, 'name_arabic' => 'المطففين', 'name_english' => 'Al-Mutaffifin', 'name_transliteration' => 'Al-Mutaffifeen', 'name_bangla' => 'আল-মুতাফফিফীন', 'total_ayahs' => 36, 'revelation_type' => 'meccan', 'revelation_order' => 86],
+            ['surah_number' => 84, 'name_arabic' => 'الانشقاق', 'name_english' => 'Al-Inshiqaq', 'name_transliteration' => 'Al-Inshiqaaq', 'name_bangla' => 'আল-ইনশিক্বাক্ব', 'total_ayahs' => 25, 'revelation_type' => 'meccan', 'revelation_order' => 83],
+            ['surah_number' => 85, 'name_arabic' => 'البروج', 'name_english' => 'Al-Buruj', 'name_transliteration' => 'Al-Burooj', 'name_bangla' => 'আল-বুরূজ', 'total_ayahs' => 22, 'revelation_type' => 'meccan', 'revelation_order' => 27],
+            ['surah_number' => 86, 'name_arabic' => 'الطارق', 'name_english' => 'At-Tariq', 'name_transliteration' => 'At-Taariq', 'name_bangla' => 'আত-তারিক্ব', 'total_ayahs' => 17, 'revelation_type' => 'meccan', 'revelation_order' => 36],
+            ['surah_number' => 87, 'name_arabic' => 'الأعلى', 'name_english' => 'Al-A\'la', 'name_transliteration' => 'Al-A\'laa', 'name_bangla' => 'আল-আলা', 'total_ayahs' => 19, 'revelation_type' => 'meccan', 'revelation_order' => 8],
+            ['surah_number' => 88, 'name_arabic' => 'الغاشية', 'name_english' => 'Al-Ghashiyah', 'name_transliteration' => 'Al-Ghaashiya', 'name_bangla' => 'আল-গাশিয়াহ', 'total_ayahs' => 26, 'revelation_type' => 'meccan', 'revelation_order' => 68],
+            ['surah_number' => 89, 'name_arabic' => 'الفجر', 'name_english' => 'Al-Fajr', 'name_transliteration' => 'Al-Fajr', 'name_bangla' => 'আল-ফাজর', 'total_ayahs' => 30, 'revelation_type' => 'meccan', 'revelation_order' => 10],
+            ['surah_number' => 90, 'name_arabic' => 'البلد', 'name_english' => 'Al-Balad', 'name_transliteration' => 'Al-Balad', 'name_bangla' => 'আল-বালাদ', 'total_ayahs' => 20, 'revelation_type' => 'meccan', 'revelation_order' => 35],
+            ['surah_number' => 91, 'name_arabic' => 'الشمس', 'name_english' => 'Ash-Shams', 'name_transliteration' => 'Ash-Shams', 'name_bangla' => 'আশ-শামস', 'total_ayahs' => 15, 'revelation_type' => 'meccan', 'revelation_order' => 26],
+            ['surah_number' => 92, 'name_arabic' => 'الليل', 'name_english' => 'Al-Layl', 'name_transliteration' => 'Al-Layl', 'name_bangla' => 'আল-লাইল', 'total_ayahs' => 21, 'revelation_type' => 'meccan', 'revelation_order' => 9],
+            ['surah_number' => 93, 'name_arabic' => 'الضحى', 'name_english' => 'Ad-Duhaa', 'name_transliteration' => 'Ad-Dhuhaa', 'name_bangla' => 'আদ-দুহা', 'total_ayahs' => 11, 'revelation_type' => 'meccan', 'revelation_order' => 11],
+            ['surah_number' => 94, 'name_arabic' => 'الشرح', 'name_english' => 'Ash-Sharh', 'name_transliteration' => 'Ash-Sharh', 'name_bangla' => 'আশ-শারহ', 'total_ayahs' => 8, 'revelation_type' => 'meccan', 'revelation_order' => 12],
+            ['surah_number' => 95, 'name_arabic' => 'التين', 'name_english' => 'At-Tin', 'name_transliteration' => 'At-Teen', 'name_bangla' => 'আত-তীন', 'total_ayahs' => 8, 'revelation_type' => 'meccan', 'revelation_order' => 28],
+            ['surah_number' => 96, 'name_arabic' => 'العلق', 'name_english' => 'Al-Alaq', 'name_transliteration' => 'Al-\'Alaq', 'name_bangla' => 'আল-আলাক্ব', 'total_ayahs' => 19, 'revelation_type' => 'meccan', 'revelation_order' => 1],
+            ['surah_number' => 97, 'name_arabic' => 'القدر', 'name_english' => 'Al-Qadr', 'name_transliteration' => 'Al-Qadr', 'name_bangla' => 'আল-ক্বদর', 'total_ayahs' => 5, 'revelation_type' => 'meccan', 'revelation_order' => 25],
+            ['surah_number' => 98, 'name_arabic' => 'البينة', 'name_english' => 'Al-Bayyinah', 'name_transliteration' => 'Al-Bayyina', 'name_bangla' => 'আল-বাইয়িনাহ', 'total_ayahs' => 8, 'revelation_type' => 'medinan', 'revelation_order' => 100],
+            ['surah_number' => 99, 'name_arabic' => 'الزلزلة', 'name_english' => 'Az-Zalzalah', 'name_transliteration' => 'Az-Zalzala', 'name_bangla' => 'আয-যিলযাল', 'total_ayahs' => 8, 'revelation_type' => 'medinan', 'revelation_order' => 93],
+            ['surah_number' => 100, 'name_arabic' => 'العاديات', 'name_english' => 'Al-Adiyat', 'name_transliteration' => 'Al-\'Aadiyaat', 'name_bangla' => 'আল-আদিয়াত', 'total_ayahs' => 11, 'revelation_type' => 'meccan', 'revelation_order' => 14],
+            ['surah_number' => 101, 'name_arabic' => 'القارعة', 'name_english' => 'Al-Qariah', 'name_transliteration' => 'Al-Qaari\'a', 'name_bangla' => 'আল-ক্বারিআহ', 'total_ayahs' => 11, 'revelation_type' => 'meccan', 'revelation_order' => 30],
+            ['surah_number' => 102, 'name_arabic' => 'التكاثر', 'name_english' => 'At-Takathur', 'name_transliteration' => 'At-Takaathur', 'name_bangla' => 'আত-তাকাসুর', 'total_ayahs' => 8, 'revelation_type' => 'meccan', 'revelation_order' => 16],
+            ['surah_number' => 103, 'name_arabic' => 'العصر', 'name_english' => 'Al-Asr', 'name_transliteration' => 'Al-\'Asr', 'name_bangla' => 'আল-আসর', 'total_ayahs' => 3, 'revelation_type' => 'meccan', 'revelation_order' => 13],
+            ['surah_number' => 104, 'name_arabic' => 'الهمزة', 'name_english' => 'Al-Humazah', 'name_transliteration' => 'Al-Humaza', 'name_bangla' => 'আল-হুমাযাহ', 'total_ayahs' => 9, 'revelation_type' => 'meccan', 'revelation_order' => 32],
+            ['surah_number' => 105, 'name_arabic' => 'الفيل', 'name_english' => 'Al-Fil', 'name_transliteration' => 'Al-Feel', 'name_bangla' => 'আল-ফীল', 'total_ayahs' => 5, 'revelation_type' => 'meccan', 'revelation_order' => 19],
+            ['surah_number' => 106, 'name_arabic' => 'قريش', 'name_english' => 'Quraysh', 'name_transliteration' => 'Quraysh', 'name_bangla' => 'কুরাইশ', 'total_ayahs' => 4, 'revelation_type' => 'meccan', 'revelation_order' => 29],
+            ['surah_number' => 107, 'name_arabic' => 'الماعون', 'name_english' => 'Al-Ma\'un', 'name_transliteration' => 'Al-Maa\'oon', 'name_bangla' => 'আল-মাউন', 'total_ayahs' => 7, 'revelation_type' => 'meccan', 'revelation_order' => 17],
+            ['surah_number' => 108, 'name_arabic' => 'الكوثر', 'name_english' => 'Al-Kawthar', 'name_transliteration' => 'Al-Kawthar', 'name_bangla' => 'আল-কাওসার', 'total_ayahs' => 3, 'revelation_type' => 'meccan', 'revelation_order' => 15],
+            ['surah_number' => 109, 'name_arabic' => 'الكافرون', 'name_english' => 'Al-Kafirun', 'name_transliteration' => 'Al-Kaafiroon', 'name_bangla' => 'আল-কাফিরূন', 'total_ayahs' => 6, 'revelation_type' => 'meccan', 'revelation_order' => 18],
+            ['surah_number' => 110, 'name_arabic' => 'النصر', 'name_english' => 'An-Nasr', 'name_transliteration' => 'An-Nasr', 'name_bangla' => 'আন-নাসর', 'total_ayahs' => 3, 'revelation_type' => 'medinan', 'revelation_order' => 114],
+            ['surah_number' => 111, 'name_arabic' => 'المسد', 'name_english' => 'Al-Masad', 'name_transliteration' => 'Al-Masad', 'name_bangla' => 'আল-মাসাদ', 'total_ayahs' => 5, 'revelation_type' => 'meccan', 'revelation_order' => 6],
+            ['surah_number' => 112, 'name_arabic' => 'الإخلاص', 'name_english' => 'Al-Ikhlas', 'name_transliteration' => 'Al-Ikhlaas', 'name_bangla' => 'আল-ইখলাস', 'total_ayahs' => 4, 'revelation_type' => 'meccan', 'revelation_order' => 22],
+            ['surah_number' => 113, 'name_arabic' => 'الفلق', 'name_english' => 'Al-Falaq', 'name_transliteration' => 'Al-Falaq', 'name_bangla' => 'আল-ফালাক্ব', 'total_ayahs' => 5, 'revelation_type' => 'meccan', 'revelation_order' => 20],
+            ['surah_number' => 114, 'name_arabic' => 'الناس', 'name_english' => 'An-Nas', 'name_transliteration' => 'An-Naas', 'name_bangla' => 'আন-নাস', 'total_ayahs' => 6, 'revelation_type' => 'meccan', 'revelation_order' => 21],
+        ];
+
+        foreach ($surahs as $surah) {
+            QuranSurah::create($surah);
+        }
+
+        // Seed Tajweed Rules
+        $tajweedRules = [
+            ['name_arabic' => 'إظهار', 'name_english' => 'Izhar', 'name_bangla' => 'ইযহার', 'description' => 'Clear pronunciation of noon sakinah or tanween when followed by throat letters', 'color_code' => '#4CAF50', 'difficulty_level' => 1],
+            ['name_arabic' => 'إدغام', 'name_english' => 'Idgham', 'name_bangla' => 'ইদগাম', 'description' => 'Merging noon sakinah or tanween with the following letter', 'color_code' => '#2196F3', 'difficulty_level' => 2],
+            ['name_arabic' => 'إقلاب', 'name_english' => 'Iqlab', 'name_bangla' => 'ইক্বলাব', 'description' => 'Converting noon sakinah to meem when followed by ba', 'color_code' => '#9C27B0', 'difficulty_level' => 2],
+            ['name_arabic' => 'إخفاء', 'name_english' => 'Ikhfa', 'name_bangla' => 'ইখফা', 'description' => 'Hiding noon sakinah or tanween with nasalization', 'color_code' => '#FF9800', 'difficulty_level' => 3],
+            ['name_arabic' => 'قلقلة', 'name_english' => 'Qalqalah', 'name_bangla' => 'ক্বালক্বালাহ', 'description' => 'Echoing sound for qaaf, ta, ba, jeem, daal when sakin', 'color_code' => '#F44336', 'difficulty_level' => 2],
+            ['name_arabic' => 'مد', 'name_english' => 'Madd', 'name_bangla' => 'মাদ', 'description' => 'Elongation of vowel sounds', 'color_code' => '#00BCD4', 'difficulty_level' => 3],
+            ['name_arabic' => 'غنة', 'name_english' => 'Ghunnah', 'name_bangla' => 'গুন্নাহ', 'description' => 'Nasalization from the nose', 'color_code' => '#8BC34A', 'difficulty_level' => 1],
+            ['name_arabic' => 'تفخيم', 'name_english' => 'Tafkheem', 'name_bangla' => 'তাফখীম', 'description' => 'Heavy/full mouth pronunciation', 'color_code' => '#795548', 'difficulty_level' => 3],
+            ['name_arabic' => 'ترقيق', 'name_english' => 'Tarqeeq', 'name_bangla' => 'তারক্বীক্ব', 'description' => 'Light/thin pronunciation', 'color_code' => '#607D8B', 'difficulty_level' => 3],
+            ['name_arabic' => 'وقف', 'name_english' => 'Waqf', 'name_bangla' => 'ওয়াক্বফ', 'description' => 'Proper stopping rules', 'color_code' => '#E91E63', 'difficulty_level' => 4],
+        ];
+
+        foreach ($tajweedRules as $rule) {
+            TajweedRule::create($rule);
+        }
+    }
+}

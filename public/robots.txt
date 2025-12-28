@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /teacher/
+Disallow: /student/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://quranlearn.com/sitemap.xml

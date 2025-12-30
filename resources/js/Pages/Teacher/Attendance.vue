@@ -4,215 +4,188 @@ import { ref, computed } from 'vue';
 import TeacherLayout from '@/Layouts/TeacherLayout.vue';
 
 const props = defineProps({
-    auth: Object,
-    classSession: {
+    classSession: Object,
+    students: Array,
+    existingAttendance: {
         type: Object,
-        required: true
-    },
-    students: {
-        type: Array,
-        default: () => []
+        default: () => ({})
     }
 });
 
 const form = useForm({
     attendance: props.students.reduce((acc, student) => {
-        acc[student.id] = student.attendance_status || 'present';
+        acc[student.id] = props.existingAttendance[student.id] || 'present';
         return acc;
     }, {}),
-    class_summary: props.classSession.summary || '',
-    topics_covered: props.classSession.topics_covered || '',
+    class_summary: '',
+    topics_covered: '',
 });
 
+const attendanceCounts = computed(() => {
+    const counts = { present: 0, absent: 0, late: 0 };
+    Object.values(form.attendance).forEach(status => {
+        if (counts[status] !== undefined) counts[status]++;
+    });
+    return counts;
+});
+
+const setAllStatus = (status) => {
+    props.students.forEach(student => {
+        form.attendance[student.id] = status;
+    });
+};
+
 const submit = () => {
-    form.post(`/teacher/classes/${props.classSession.id}/attendance`, {
+    form.post(route('teacher.attendance.store', props.classSession.id), {
         preserveScroll: true,
     });
 };
 
-const attendanceOptions = [
-    { value: 'present', label: 'Present', color: 'bg-green-500', icon: '✅' },
-    { value: 'late', label: 'Late', color: 'bg-yellow-500', icon: '⏰' },
-    { value: 'absent', label: 'Absent', color: 'bg-red-500', icon: '❌' },
-    { value: 'excused', label: 'Excused', color: 'bg-blue-500', icon: '📝' },
-];
+const getStatusColor = (status) => {
+    return {
+        present: 'bg-emerald-500 text-white',
+        absent: 'bg-red-500 text-white',
+        late: 'bg-amber-500 text-white',
+    }[status] || 'bg-gray-200 text-gray-700';
+};
 
-const getAttendanceColor = (status) => {
+const getButtonClass = (studentId, status) => {
+    const isActive = form.attendance[studentId] === status;
     const colors = {
-        'present': 'bg-green-100 text-green-700 border-green-300',
-        'late': 'bg-yellow-100 text-yellow-700 border-yellow-300',
-        'absent': 'bg-red-100 text-red-700 border-red-300',
-        'excused': 'bg-blue-100 text-blue-700 border-blue-300',
+        present: isActive ? 'bg-emerald-500 text-white shadow-lg' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200',
+        absent: isActive ? 'bg-red-500 text-white shadow-lg' : 'bg-red-100 text-red-700 hover:bg-red-200',
+        late: isActive ? 'bg-amber-500 text-white shadow-lg' : 'bg-amber-100 text-amber-700 hover:bg-amber-200',
     };
-    return colors[status] || 'bg-gray-100 text-gray-700 border-gray-200';
+    return colors[status];
 };
-
-const markAllPresent = () => {
-    props.students.forEach(student => {
-        form.attendance[student.id] = 'present';
-    });
-};
-
-const presentCount = computed(() => 
-    Object.values(form.attendance).filter(s => s === 'present' || s === 'late').length
-);
-
-const absentCount = computed(() => 
-    Object.values(form.attendance).filter(s => s === 'absent').length
-);
 </script>
 
 <template>
-    <Head :title="`Attendance - ${classSession.title} | Teacher`" />
+    <Head title="Mark Attendance" />
 
     <TeacherLayout>
-        <template #header>
-            <div class="flex items-center gap-4">
-                <Link href="/teacher/dashboard" class="text-gray-400 hover:text-gray-600">
-                    ← Back
-                </Link>
-                <div>
-                    <h2 class="font-display text-xl font-bold text-gray-900">
-                        Mark Attendance ✅
-                    </h2>
-                    <p class="text-gray-500 text-sm">{{ classSession.title }}</p>
-                </div>
-            </div>
-        </template>
-
         <div class="space-y-6">
-            <!-- Class Info Banner -->
-            <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white relative overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-2xl p-6 text-white relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
                 <div class="relative z-10">
-                    <h2 class="text-2xl font-bold mb-2">{{ classSession.title }}</h2>
-                    <p class="text-emerald-100">{{ classSession.batch?.name }} • {{ classSession.course?.title }}</p>
-                    <div class="flex items-center gap-6 mt-4 text-sm text-emerald-100">
-                        <span>📅 {{ classSession.date }}</span>
-                        <span>🕐 {{ classSession.time }}</span>
-                        <span>⏱️ {{ classSession.duration_minutes }} min</span>
-                        <span>👥 {{ students.length }} students</span>
+                    <Link :href="route('teacher.dashboard')" class="inline-flex items-center gap-2 text-emerald-100 hover:text-white mb-4 text-sm">
+                        ← Back to Dashboard
+                    </Link>
+                    <h1 class="text-2xl font-bold mb-2">{{ classSession.title }}</h1>
+                    <p class="text-emerald-100">
+                        {{ classSession.batch?.name }} • {{ classSession.date }} at {{ classSession.time }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-emerald-50 dark:bg-emerald-900/30 rounded-xl p-4 text-center">
+                    <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ attendanceCounts.present }}</p>
+                    <p class="text-sm text-emerald-700 dark:text-emerald-300">Present</p>
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/30 rounded-xl p-4 text-center">
+                    <p class="text-3xl font-bold text-red-600 dark:text-red-400">{{ attendanceCounts.absent }}</p>
+                    <p class="text-sm text-red-700 dark:text-red-300">Absent</p>
+                </div>
+                <div class="bg-amber-50 dark:bg-amber-900/30 rounded-xl p-4 text-center">
+                    <p class="text-3xl font-bold text-amber-600 dark:text-amber-400">{{ attendanceCounts.late }}</p>
+                    <p class="text-sm text-amber-700 dark:text-amber-300">Late</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Quick Actions:</p>
+                <div class="flex gap-2 flex-wrap">
+                    <button @click="setAllStatus('present')" class="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition text-sm font-medium">
+                        ✓ Mark All Present
+                    </button>
+                    <button @click="setAllStatus('absent')" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm font-medium">
+                        ✗ Mark All Absent
+                    </button>
+                </div>
+            </div>
+
+            <!-- Students List -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div class="p-5 border-b border-gray-100 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        Students ({{ students.length }})
+                    </h3>
+                </div>
+                
+                <div v-if="students.length === 0" class="p-12 text-center text-gray-500">
+                    <span class="text-4xl block mb-4">👥</span>
+                    <p>No students enrolled in this batch</p>
+                </div>
+                
+                <div v-else class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <div v-for="student in students" :key="student.id" 
+                         class="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-lg">
+                                {{ student.name?.charAt(0).toUpperCase() }}
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900 dark:text-white">{{ student.name }}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ student.email }}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button 
+                                v-for="status in ['present', 'absent', 'late']" 
+                                :key="status"
+                                @click="form.attendance[student.id] = status"
+                                :class="['px-4 py-2 rounded-lg font-medium transition-all text-sm capitalize', getButtonClass(student.id, status)]"
+                            >
+                                {{ status }}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <form @submit.prevent="submit">
-                <div class="grid lg:grid-cols-3 gap-6">
-                    <!-- Student List -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                                <h3 class="font-semibold text-gray-900">Students ({{ students.length }})</h3>
-                                <button
-                                    type="button"
-                                    @click="markAllPresent"
-                                    class="text-sm text-emerald-500 hover:text-emerald-600 font-medium"
-                                >
-                                    ✅ Mark All Present
-                                </button>
-                            </div>
-
-                            <div class="divide-y divide-gray-100">
-                                <div
-                                    v-for="student in students"
-                                    :key="student.id"
-                                    class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                                >
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold">
-                                            {{ student.name?.charAt(0).toUpperCase() }}
-                                        </div>
-                                        <div>
-                                            <p class="font-medium text-gray-900">{{ student.name }}</p>
-                                            <p class="text-sm text-gray-500">{{ student.email }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center gap-2">
-                                        <button
-                                            v-for="option in attendanceOptions"
-                                            :key="option.value"
-                                            type="button"
-                                            @click="form.attendance[student.id] = option.value"
-                                            :class="[
-                                                'px-3 py-1.5 text-xs font-medium rounded-lg border-2 transition-all',
-                                                form.attendance[student.id] === option.value
-                                                    ? getAttendanceColor(option.value)
-                                                    : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
-                                            ]"
-                                        >
-                                            {{ option.label }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div v-if="!students.length" class="p-12 text-center">
-                                <span class="text-4xl mb-4 block">👥</span>
-                                <p class="text-gray-500">No students enrolled in this class</p>
-                            </div>
-                        </div>
+            <!-- Class Notes -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Class Notes</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Topics Covered</label>
+                        <input 
+                            v-model="form.topics_covered" 
+                            type="text"
+                            placeholder="e.g., Surah Al-Fatiha, Tajweed rules..."
+                            class="w-full rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-emerald-500 focus:ring-emerald-500"
+                        />
                     </div>
-
-                    <!-- Summary & Stats -->
-                    <div class="space-y-6">
-                        <!-- Attendance Stats -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h3 class="font-semibold text-gray-900 mb-4">📊 Attendance Summary</h3>
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
-                                    <span class="text-gray-700">Present/Late</span>
-                                    <span class="font-bold text-green-600 text-lg">{{ presentCount }}</span>
-                                </div>
-                                <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl">
-                                    <span class="text-gray-700">Absent</span>
-                                    <span class="font-bold text-red-600 text-lg">{{ absentCount }}</span>
-                                </div>
-                                <div class="border-t pt-3 flex items-center justify-between">
-                                    <span class="font-medium text-gray-900">Attendance Rate</span>
-                                    <span class="font-bold text-emerald-600 text-xl">
-                                        {{ students.length ? Math.round((presentCount / students.length) * 100) : 0 }}%
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Class Summary -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h3 class="font-semibold text-gray-900 mb-4">📝 Class Summary</h3>
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Topics Covered</label>
-                                    <input
-                                        v-model="form.topics_covered"
-                                        type="text"
-                                        placeholder="e.g., Surah Al-Fatiha, Tajweed rules"
-                                        class="w-full rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                                    <textarea
-                                        v-model="form.class_summary"
-                                        rows="4"
-                                        placeholder="Any notes about this class..."
-                                        class="w-full rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
-                                    ></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Submit -->
-                        <button
-                            type="submit"
-                            :disabled="form.processing"
-                            class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl transition-all disabled:opacity-50 shadow-lg hover:shadow-xl"
-                        >
-                            {{ form.processing ? 'Saving...' : '💾 Save Attendance' }}
-                        </button>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Class Summary</label>
+                        <textarea 
+                            v-model="form.class_summary" 
+                            rows="3"
+                            placeholder="Write a brief summary of the class..."
+                            class="w-full rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-emerald-500 focus:ring-emerald-500"
+                        ></textarea>
                     </div>
                 </div>
-            </form>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end gap-4">
+                <Link :href="route('teacher.dashboard')" class="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                    Cancel
+                </Link>
+                <button 
+                    @click="submit"
+                    :disabled="form.processing"
+                    class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-xl hover:from-emerald-600 hover:to-teal-600 transition shadow-lg disabled:opacity-50"
+                >
+                    <span v-if="form.processing">Saving...</span>
+                    <span v-else>✓ Save Attendance</span>
+                </button>
+            </div>
         </div>
     </TeacherLayout>
 </template>

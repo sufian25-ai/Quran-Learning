@@ -3,81 +3,55 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
-use App\Models\Teacher;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
 {
-    /**
-     * Generate XML sitemap
-     */
     public function index()
     {
-        $sitemap = '<?xml version="1.0" encoding="UTF-8"?>';
-        $sitemap .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        $baseUrl = config('app.url');
 
-        // Homepage
-        $sitemap .= $this->addUrl(url('/'), '1.0', 'daily');
+        $urls = [];
 
-        // Static pages
-        $staticPages = [
-            '/courses' => ['priority' => '0.9', 'changefreq' => 'daily'],
-            '/teachers' => ['priority' => '0.8', 'changefreq' => 'weekly'],
-            '/pricing' => ['priority' => '0.7', 'changefreq' => 'weekly'],
-            '/about' => ['priority' => '0.6', 'changefreq' => 'monthly'],
-        ];
+        // Static Pages
+        $urls[] = ['loc' => $baseUrl, 'priority' => '1.0', 'changefreq' => 'daily'];
+        $urls[] = ['loc' => $baseUrl . '/about', 'priority' => '0.8', 'changefreq' => 'monthly'];
+        $urls[] = ['loc' => $baseUrl . '/pricing', 'priority' => '0.8', 'changefreq' => 'monthly'];
+        $urls[] = ['loc' => $baseUrl . '/courses', 'priority' => '0.9', 'changefreq' => 'daily'];
+        $urls[] = ['loc' => $baseUrl . '/teachers', 'priority' => '0.8', 'changefreq' => 'weekly'];
+        $urls[] = ['loc' => $baseUrl . '/register', 'priority' => '0.8', 'changefreq' => 'monthly'];
+        $urls[] = ['loc' => $baseUrl . '/login', 'priority' => '0.8', 'changefreq' => 'monthly'];
 
-        foreach ($staticPages as $url => $config) {
-            $sitemap .= $this->addUrl(
-                url($url),
-                $config['priority'],
-                $config['changefreq']
-            );
-        }
-
-        // All published courses
-        $courses = Course::published()->get();
+        // Dynamic Courses
+        $courses = Course::where('is_published', true)->get();
         foreach ($courses as $course) {
-            $sitemap .= $this->addUrl(
-                url("/courses/{$course->id}"),
-                '0.8',
-                'weekly',
-                $course->updated_at->toAtomString()
-            );
+            $urls[] = [
+                'loc' => $baseUrl . '/courses/' . $course->slug,
+                'priority' => '0.9',
+                'changefreq' => 'weekly',
+                'lastmod' => $course->updated_at->toAtomString(),
+            ];
         }
 
-        // All active teachers
-        $teachers = Teacher::where('status', 'approved')->get();
-        foreach ($teachers as $teacher) {
-            $sitemap .= $this->addUrl(
-                url("/teachers/{$teacher->id}"),
-                '0.7',
-                'monthly'
-            );
+        // XML Construction
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+        foreach ($urls as $url) {
+            $xml .= '<url>';
+            $xml .= '<loc>' . $url['loc'] . '</loc>';
+            if (isset($url['lastmod'])) {
+                $xml .= '<lastmod>' . $url['lastmod'] . '</lastmod>';
+            }
+            $xml .= '<changefreq>' . $url['changefreq'] . '</changefreq>';
+            $xml .= '<priority>' . $url['priority'] . '</priority>';
+            $xml .= '</url>';
         }
 
-        $sitemap .= '</urlset>';
+        $xml .= '</urlset>';
 
-        return response($sitemap, 200)
-            ->header('Content-Type', 'text/xml');
-    }
-
-    /**
-     * Add URL to sitemap
-     */
-    private function addUrl($loc, $priority = '0.5', $changefreq = 'weekly', $lastmod = null)
-    {
-        $url = '<url>';
-        $url .= '<loc>' . htmlspecialchars($loc) . '</loc>';
-
-        if ($lastmod) {
-            $url .= '<lastmod>' . $lastmod . '</lastmod>';
-        }
-
-        $url .= '<changefreq>' . $changefreq . '</changefreq>';
-        $url .= '<priority>' . $priority . '</priority>';
-        $url .= '</url>';
-
-        return $url;
+        return response($xml, 200, [
+            'Content-Type' => 'application/xml',
+        ]);
     }
 }

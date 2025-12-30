@@ -365,10 +365,13 @@ Route::middleware(['auth', 'role:student'])->group(function () {
         // Get stats
         $streak = $user->learningStreak;
 
+        // Count only 'present' attendance
+        $classesAttended = $user->attendances()->where('status', 'present')->count();
+
         return Inertia::render('Student/Dashboard', [
             'stats' => [
                 'active_courses' => $activeEnrollments->count(),
-                'classes_attended' => $user->attendances()->count(),
+                'classes_attended' => $classesAttended,
                 'current_streak' => $streak?->current_streak ?? 0,
                 'longest_streak' => $streak?->longest_streak ?? 0,
                 'points' => $user->points ?? 0,
@@ -644,9 +647,9 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/certificates', function () {
         $user = auth()->user();
 
-        $certificates = \App\Models\Certificate::where('student_id', $user->id)
+        $certificates = \App\Models\Certificate::where('user_id', $user->id)
             ->with('course:id,title')
-            ->orderBy('issued_at', 'desc')
+            ->orderBy('course_completed_at', 'desc')
             ->get();
 
         return Inertia::render('Student/Certificates', [
@@ -654,7 +657,7 @@ Route::middleware(['auth', 'role:student'])->group(function () {
                 'id' => $cert->id,
                 'certificate_number' => $cert->certificate_number,
                 'course' => $cert->course ? ['title' => $cert->course->title] : null,
-                'issued_at' => $cert->issued_at?->format('M d, Y') ?? 'N/A',
+                'issued_at' => $cert->course_completed_at?->format('M d, Y') ?? 'N/A',
                 'classes_attended' => $cert->metadata['classes_attended'] ?? 0,
             ]),
         ]);
@@ -966,9 +969,9 @@ Route::middleware(['auth', 'role:student'])->group(function () {
             'batch.course:id,title',
         ])->findOrFail($id);
 
-        // Verify user has access to this class
+        // Verify user has access to this class (enrolled in same batch - any valid status)
         $hasAccess = $user->enrollments()
-            ->active()
+            ->whereNotIn('status', ['cancelled', 'refunded'])
             ->where(function ($q) use ($classSession) {
                 $q->where('batch_id', $classSession->batch_id)
                     ->orWhere('id', $classSession->enrollment_id);
@@ -979,7 +982,7 @@ Route::middleware(['auth', 'role:student'])->group(function () {
             abort(403, 'You do not have access to this class.');
         }
 
-        return Inertia::render('Student/ClassJoin', [
+        return Inertia::render('Student/JoinClass', [
             'classSession' => [
                 'id' => $classSession->id,
                 'title' => $classSession->title,
@@ -1234,11 +1237,8 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->grou
             ->limit(10)
             ->get();
 
-        // Get total students
-        $totalStudents = \App\Models\Enrollment::whereIn('batch_id', $batches->pluck('id'))
-            ->active()
-            ->distinct('user_id')
-            ->count();
+        // Get total students (sum from batch enrollments_count via withCount)
+        $totalStudents = $batches->sum('enrollments_count');
 
         return Inertia::render('Teacher/Dashboard', [
             'stats' => [
@@ -1352,10 +1352,8 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->grou
             ->orderBy('start_date', 'desc')
             ->get();
 
-        $totalStudents = \App\Models\Enrollment::whereIn('batch_id', $batches->pluck('id'))
-            ->active()
-            ->distinct('user_id')
-            ->count();
+        // Sum enrollments_count from batches (from withCount)
+        $totalStudents = $batches->sum('enrollments_count');
 
         return Inertia::render('Teacher/Batches', [
             'batches' => $batches->map(fn($b) => [
@@ -1373,6 +1371,96 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->grou
         ]);
     })->name('teacher.batches');
 
+    // Attendance List - Shows all classes for attendance
+    Route::get('/attendance', function () {
+        $user = auth()->user();
+
+        $batchIds = \App\Models\Batch::where('teacher_id', $user->id)->pluck('id');
+
+        $classes = \App\Models\ClassSession::whereIn('batch_id', $batchIds)
+            ->with(['batch:id,name'])
+            ->orderBy('scheduled_at', 'desc')
+            ->limit(30)
+            ->get()
+            ->map(fn($c) => [
+                'id' => $c->id,
+                'title' => $c->title,
+                'scheduled_at' => $c->scheduled_at->toISOString(),
+                'status' => $c->status,
+                'batch' => $c->batch,
+                'attendance_marked' => \App\Models\Attendance::where('class_id', $c->id)->exists(),
+            ]);
+
+        return Inertia::render('Teacher/AttendanceList', [
+            'classes' => $classes,
+        ]);
+    })->name('teacher.attendance.list');
+
+    // Create Class Session Page - MUST be before /classes/{id} routes!
+    Route::get('/classes/create', function () {
+        $user = auth()->user();
+
+        $batches = \App\Models\Batch::where('teacher_id', $user->id)
+            ->where('status', 'active')
+            ->with('course:id,title')
+            ->withCount('enrollments')
+            ->get()
+            ->map(fn($b) => [
+                'id' => $b->id,
+                'name' => $b->name,
+                'course' => $b->course,
+                'enrolled_students' => $b->enrollments_count,
+            ]);
+
+        return Inertia::render('Teacher/CreateClass', [
+            'batches' => $batches,
+            'teacherTimezone' => $user->timezone ?? 'Asia/Dhaka',
+        ]);
+    })->name('teacher.classes.create');
+
+    // Store Class Session
+    Route::post('/classes', function () {
+        $user = auth()->user();
+
+        $validated = request()->validate([
+            'batch_id' => 'required|exists:batches,id',
+            'title' => 'required|string|max:255',
+            'scheduled_date' => 'required|date|after_or_equal:today',
+            'scheduled_time' => 'required',
+            'duration_minutes' => 'required|integer|min:15|max:180',
+            'description' => 'nullable|string',
+            'zoom_start_url' => 'nullable|url',
+            'zoom_join_url' => 'nullable|url',
+        ]);
+
+        // Verify teacher owns this batch
+        $batch = \App\Models\Batch::where('id', $validated['batch_id'])
+            ->where('teacher_id', $user->id)
+            ->firstOrFail();
+
+        // Combine date and time in teacher's timezone, then convert to UTC for storage
+        $teacherTimezone = $user->timezone ?? 'Asia/Dhaka';
+        $scheduledAt = \Carbon\Carbon::parse(
+            $validated['scheduled_date'] . ' ' . $validated['scheduled_time'],
+            $teacherTimezone
+        )->utc();
+
+        $classSession = \App\Models\ClassSession::create([
+            'batch_id' => $batch->id,
+            'teacher_id' => $user->id,
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'scheduled_at' => $scheduledAt,
+            'duration_minutes' => $validated['duration_minutes'],
+            'status' => 'scheduled',
+            'zoom_start_url' => $validated['zoom_start_url'],
+            'zoom_join_url' => $validated['zoom_join_url'],
+        ]);
+
+        return redirect()->route('teacher.schedule')
+            ->with('success', 'Class session created successfully!');
+    })->name('teacher.classes.store');
+
     // Attendance Page
     Route::get('/classes/{id}/attendance', function ($id) {
         $user = auth()->user();
@@ -1382,16 +1470,22 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->grou
             ->with(['batch:id,name,course_id', 'batch.course:id,title'])
             ->firstOrFail();
 
+        // Get enrollments - include all non-cancelled enrollments
         $students = \App\Models\Enrollment::where('batch_id', $classSession->batch_id)
-            ->active()
-            ->with('user:id,name,email')
+            ->whereNotIn('status', ['cancelled', 'refunded'])
+            ->with('user:id,name,email,avatar')
             ->get()
             ->map(fn($e) => [
                 'id' => $e->user->id,
                 'name' => $e->user->name,
                 'email' => $e->user->email,
-                'attendance_status' => 'present',
+                'avatar' => $e->user->avatar,
             ]);
+
+        // Get existing attendance records
+        $existingAttendance = \App\Models\Attendance::where('class_id', $id)
+            ->pluck('status', 'student_id')
+            ->toArray();
 
         return Inertia::render('Teacher/Attendance', [
             'classSession' => [
@@ -1404,6 +1498,7 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->grou
                 'course' => $classSession->batch?->course ? ['title' => $classSession->batch->course->title] : null,
             ],
             'students' => $students,
+            'existingAttendance' => $existingAttendance,
         ]);
     })->name('teacher.attendance');
 
@@ -1421,40 +1516,61 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->grou
             'topics_covered' => 'nullable|string',
         ]);
 
-        // Save attendance records and award XP
-        $gamificationService = app(\App\Services\GamificationService::class);
+        \Illuminate\Support\Facades\Log::info('Attendance ID: ' . $id);
+        \Illuminate\Support\Facades\Log::info('Attendance Data: ' . json_encode($validated['attendance']));
 
-        foreach ($validated['attendance'] as $userId => $status) {
-            \App\Models\Attendance::updateOrCreate(
-                [
-                    'class_id' => $classSession->id,
-                    'student_id' => $userId,
-                ],
-                [
-                    'status' => $status,
-                    'marked_by' => $user->id,
-                    'marked_at' => now(),
-                ]
-            );
+        try {
+            // Save attendance records and award XP
+            $gamificationService = app(\App\Services\GamificationService::class);
 
-            // Award XP for present students
-            if ($status === 'present') {
-                $student = \App\Models\User::find($userId);
-                if ($student) {
-                    $gamificationService->awardClassAttendance($student, $classSession->id);
+            foreach ($validated['attendance'] as $userId => $status) {
+                \Illuminate\Support\Facades\Log::info("Processing user $userId with status $status");
+
+                \App\Models\Attendance::updateOrCreate(
+                    [
+                        'class_id' => $classSession->id,
+                        'student_id' => $userId,
+                    ],
+                    [
+                        'status' => $status,
+                        'marked_by' => $user->id,
+                        'marked_at' => now(),
+                    ]
+                );
+
+                // Award XP for present students
+                if ($status === 'present') {
+                    $student = \App\Models\User::find($userId);
+                    if ($student) {
+                        $gamificationService->awardClassAttendance($student, $classSession->id);
+
+                        // Update Streak
+                        $streak = $student->learningStreak()->firstOrCreate([
+                            'user_id' => $student->id
+                        ], [
+                            'current_streak' => 0,
+                            'longest_streak' => 0,
+                            'last_activity_date' => null
+                        ]);
+
+                        $streak->recordActivity();
+                    }
                 }
             }
+
+            // Update class session
+            $classSession->update([
+                'summary' => $validated['class_summary'],
+                'topics_covered' => $validated['topics_covered'],
+                'status' => 'completed',
+            ]);
+
+            return redirect()->route('teacher.dashboard')
+                ->with('success', 'Attendance saved and XP awarded!');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Attendance Save Error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Failed to save attendance: ' . $e->getMessage()]);
         }
-
-        // Update class session
-        $classSession->update([
-            'summary' => $validated['class_summary'],
-            'topics_covered' => $validated['topics_covered'],
-            'status' => 'completed',
-        ]);
-
-        return redirect()->route('teacher.dashboard')
-            ->with('success', 'Attendance saved and XP awarded!');
     })->name('teacher.attendance.store');
 
     // Teacher Resources
@@ -1617,11 +1733,12 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->grou
             ->get();
 
         $students = \App\Models\Enrollment::whereIn('batch_id', $batchIds)
-            ->active()
+            ->whereNotIn('status', ['cancelled', 'refunded'])
             ->with(['user:id,name,email,avatar', 'batch:id,name'])
             ->get()
             ->map(fn($e) => [
                 'id' => $e->user->id,
+                'enrollment_id' => $e->id,
                 'name' => $e->user->name,
                 'email' => $e->user->email,
                 'avatar' => $e->user->avatar,
@@ -1641,6 +1758,78 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->grou
             ],
         ]);
     })->name('teacher.students');
+
+    // Student Progress Page
+    Route::get('/students/{enrollmentId}/progress', function ($enrollmentId) {
+        $user = auth()->user();
+
+        $enrollment = \App\Models\Enrollment::where('id', $enrollmentId)
+            ->whereHas('batch', fn($q) => $q->where('teacher_id', $user->id))
+            ->with(['user:id,name,email,avatar', 'course:id,title', 'batch:id,name'])
+            ->firstOrFail();
+
+        // Get student's skill progress (stored in metadata or separate table)
+        $skills = json_decode($enrollment->skill_progress ?? '{}', true);
+
+        return Inertia::render('Teacher/StudentProgress', [
+            'student' => [
+                'id' => $enrollment->user->id,
+                'name' => $enrollment->user->name,
+                'email' => $enrollment->user->email,
+                'avatar' => $enrollment->user->avatar,
+            ],
+            'enrollment' => [
+                'id' => $enrollment->id,
+                'course' => $enrollment->course,
+                'batch' => $enrollment->batch,
+                'progress_percentage' => $enrollment->progress_percentage,
+            ],
+            'skills' => [
+                'quran_reading' => $skills['quran_reading'] ?? 0,
+                'tajweed' => $skills['tajweed'] ?? 0,
+                'pronunciation' => $skills['pronunciation'] ?? 0,
+                'memorization' => $skills['memorization'] ?? 0,
+                'fluency' => $skills['fluency'] ?? 0,
+                'notes' => $skills['notes'] ?? '',
+            ],
+        ]);
+    })->name('teacher.student.progress');
+
+    // Update Student Progress
+    Route::post('/students/{enrollmentId}/progress', function ($enrollmentId) {
+        $user = auth()->user();
+
+        $enrollment = \App\Models\Enrollment::where('id', $enrollmentId)
+            ->whereHas('batch', fn($q) => $q->where('teacher_id', $user->id))
+            ->firstOrFail();
+
+        $validated = request()->validate([
+            'quran_reading' => 'required|integer|min:0|max:100',
+            'tajweed' => 'required|integer|min:0|max:100',
+            'pronunciation' => 'required|integer|min:0|max:100',
+            'memorization' => 'required|integer|min:0|max:100',
+            'fluency' => 'required|integer|min:0|max:100',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Calculate overall progress
+        $overallProgress = round(
+            ($validated['quran_reading'] * 0.25) +
+            ($validated['tajweed'] * 0.25) +
+            ($validated['pronunciation'] * 0.20) +
+            ($validated['memorization'] * 0.20) +
+            ($validated['fluency'] * 0.10)
+        );
+
+        // Store skills as JSON
+        $enrollment->update([
+            'progress_percentage' => $overallProgress,
+            'skill_progress' => json_encode($validated),
+        ]);
+
+        return redirect()->route('teacher.students')
+            ->with('success', 'Student progress updated successfully!');
+    })->name('teacher.student.progress.update');
 
     // Teacher Earnings
     Route::get('/earnings', function () {
@@ -1965,6 +2154,51 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
 
         return redirect()->route('admin.courses.index')->with('success', 'Course deleted successfully.');
     })->name('admin.courses.destroy');
+
+    // Admin Class Session Management
+    Route::get('/classes', function () {
+        $query = \App\Models\ClassSession::with(['teacher:id,name', 'batch:id,name']);
+
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhereHas('teacher', fn($jq) => $jq->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('batch', fn($jq) => $jq->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        if (request('status')) {
+            $query->where('status', request('status'));
+        }
+
+        if (request('date')) {
+            $query->whereDate('scheduled_at', request('date'));
+        }
+
+        $classes = $query->orderBy('scheduled_at', 'desc')->paginate(20);
+
+        return Inertia::render('Admin/Classes/Index', [
+            'classes' => $classes->through(fn($c) => [
+                'id' => $c->id,
+                'title' => $c->title,
+                'teacher' => $c->teacher ? ['name' => $c->teacher->name] : null,
+                'batch' => $c->batch ? ['name' => $c->batch->name] : null,
+                'scheduled_at' => $c->scheduled_at->toISOString(),
+                'status' => $c->status,
+                'duration_minutes' => $c->duration_minutes,
+                'attendee_count' => \App\Models\Attendance::where('class_id', $c->id)->where('status', 'present')->count(),
+                'zoom_meeting_id' => $c->zoom_meeting_id
+            ]),
+            'filters' => request()->only(['search', 'status', 'date']),
+        ]);
+    })->name('admin.classes.index');
+
+    Route::delete('/classes/{id}', function ($id) {
+        $class = \App\Models\ClassSession::findOrFail($id);
+        $class->delete();
+        return back()->with('success', 'Class session deleted successfully.');
+    })->name('admin.classes.destroy');
 
     // Admin User Management
     Route::get('/users', function () {
@@ -2461,6 +2695,171 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
         \App\Models\Review::where('id', $id)->delete();
         return back()->with('success', 'Review deleted.');
     })->name('admin.reviews.delete');
+
+    // ==========================================
+    // ADMIN CERTIFICATE MANAGEMENT
+    // ==========================================
+
+    // Certificates Index
+    Route::get('/certificates', function () {
+        $query = \App\Models\Certificate::with(['user:id,name,email', 'course:id,title']);
+
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('certificate_number', 'like', "%{$search}%")
+                    ->orWhere('student_name', 'like', "%{$search}%")
+                    ->orWhereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        if (request('course_id')) {
+            $query->where('course_id', request('course_id'));
+        }
+
+        $certificates = $query->latest()->paginate(20);
+        $courses = \App\Models\Course::select('id', 'title')->get();
+
+        $stats = [
+            'total_certificates' => \App\Models\Certificate::count(),
+            'this_month' => \App\Models\Certificate::whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)->count(),
+            'pending_enrollments' => \App\Models\Enrollment::where('status', 'completed')
+                ->whereDoesntHave('certificate')->count(),
+        ];
+
+        return Inertia::render('Admin/Certificates/Index', [
+            'certificates' => $certificates,
+            'courses' => $courses,
+            'stats' => $stats,
+            'filters' => request()->only(['search', 'course_id']),
+        ]);
+    })->name('admin.certificates.index');
+
+    // Eligible Students for Certificate Generation
+    Route::get('/certificates/eligible', function () {
+        // Get completed enrollments without certificates
+        $eligibleEnrollments = \App\Models\Enrollment::where('status', 'completed')
+            ->whereDoesntHave('certificate')
+            ->with(['user:id,name,email', 'course:id,title'])
+            ->latest()
+            ->paginate(20);
+
+        $courses = \App\Models\Course::select('id', 'title')->get();
+
+        return Inertia::render('Admin/Certificates/Eligible', [
+            'enrollments' => $eligibleEnrollments,
+            'courses' => $courses,
+        ]);
+    })->name('admin.certificates.eligible');
+
+    // Student Progress for Certificates
+    Route::get('/certificates/student-progress', function () {
+        // Get all enrollments with progress information
+        $enrollments = \App\Models\Enrollment::with(['user:id,name,email', 'course:id,title', 'certificate'])
+            ->latest()
+            ->paginate(20);
+
+        $stats = [
+            'total_enrolled' => \App\Models\Enrollment::count(),
+            'in_progress' => \App\Models\Enrollment::where('status', 'active')->count(),
+            'completed' => \App\Models\Enrollment::where('status', 'completed')->count(),
+            'with_certificates' => \App\Models\Certificate::count(),
+        ];
+
+        $courses = \App\Models\Course::select('id', 'title')->get();
+
+        return Inertia::render('Admin/Certificates/Simple', [
+            'enrollments' => $enrollments->through(fn($e) => [
+                'id' => $e->id,
+                'user' => $e->user ? ['id' => $e->user->id, 'name' => $e->user->name, 'email' => $e->user->email] : null,
+                'course' => $e->course ? ['id' => $e->course->id, 'title' => $e->course->title] : null,
+                'status' => $e->status,
+                'progress_percentage' => $e->progress_percentage ?? 0,
+                'has_certificate' => $e->certificate !== null,
+                'certificate_number' => $e->certificate?->certificate_number,
+                'created_at' => $e->created_at->toISOString(),
+            ]),
+            'stats' => $stats,
+            'courses' => $courses,
+            'filters' => request()->only(['search', 'status', 'course_id']),
+        ]);
+    })->name('admin.certificates.student-progress');
+
+    // Generate Certificate for Enrollment
+    Route::post('/certificates/generate/{enrollment}', function ($enrollmentId) {
+        $enrollment = \App\Models\Enrollment::with(['user', 'course'])
+            ->where('status', 'completed')
+            ->findOrFail($enrollmentId);
+
+        // Check if certificate already exists
+        if ($enrollment->certificate) {
+            return back()->with('error', 'Certificate already exists for this enrollment.');
+        }
+
+        // Generate unique certificate number
+        $certificateNumber = 'CERT-' . strtoupper(uniqid()) . '-' . now()->format('Y');
+        $verificationCode = \Str::random(12);
+
+        $certificate = \App\Models\Certificate::create([
+            'user_id' => $enrollment->user_id,
+            'course_id' => $enrollment->course_id,
+            'enrollment_id' => $enrollment->id,
+            'certificate_number' => $certificateNumber,
+            'verification_code' => $verificationCode,
+            'student_name' => $enrollment->user->name,
+            'course_title' => $enrollment->course->title,
+            'completion_percentage' => $enrollment->progress_percentage ?? 100,
+            'course_completed_at' => $enrollment->completed_at ?? now(),
+            'issued_at' => now(),
+            'issued_by' => auth()->user()->name,
+        ]);
+
+        return back()->with('success', "Certificate generated: {$certificateNumber}");
+    })->name('admin.certificates.generate');
+
+    // Bulk Generate Certificates
+    Route::post('/certificates/bulk-generate', function () {
+        $validated = request()->validate([
+            'enrollment_ids' => 'required|array',
+            'enrollment_ids.*' => 'exists:enrollments,id',
+        ]);
+
+        $generated = 0;
+        foreach ($validated['enrollment_ids'] as $enrollmentId) {
+            $enrollment = \App\Models\Enrollment::with(['user', 'course'])
+                ->where('id', $enrollmentId)
+                ->where('status', 'completed')
+                ->first();
+
+            if ($enrollment && !$enrollment->certificate) {
+                $certificateNumber = 'CERT-' . strtoupper(uniqid()) . '-' . now()->format('Y');
+
+                \App\Models\Certificate::create([
+                    'user_id' => $enrollment->user_id,
+                    'course_id' => $enrollment->course_id,
+                    'enrollment_id' => $enrollment->id,
+                    'certificate_number' => $certificateNumber,
+                    'verification_code' => \Str::random(12),
+                    'student_name' => $enrollment->user->name,
+                    'course_title' => $enrollment->course->title,
+                    'completion_percentage' => $enrollment->progress_percentage ?? 100,
+                    'course_completed_at' => $enrollment->completed_at ?? now(),
+                    'issued_at' => now(),
+                    'issued_by' => auth()->user()->name,
+                ]);
+                $generated++;
+            }
+        }
+
+        return back()->with('success', "{$generated} certificates generated successfully!");
+    })->name('admin.certificates.bulk-generate');
+
+    // Delete Certificate
+    Route::delete('/certificates/{id}', function ($id) {
+        \App\Models\Certificate::where('id', $id)->delete();
+        return back()->with('success', 'Certificate deleted.');
+    })->name('admin.certificates.delete');
 });
 
 // Test route for Pusher verification

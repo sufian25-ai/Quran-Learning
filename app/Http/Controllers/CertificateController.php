@@ -66,6 +66,34 @@ class CertificateController extends Controller
     }
 
     /**
+     * View certificate in browser
+     */
+    public function view($id)
+    {
+        $certificate = Certificate::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->with(['course', 'user'])
+            ->firstOrFail();
+
+        return Inertia::render('Student/CertificateView', [
+            'certificate' => [
+                'id' => $certificate->id,
+                'certificate_number' => $certificate->certificate_number,
+                'verification_code' => $certificate->verification_code,
+                'student_name' => $certificate->student_name,
+                'course_title' => $certificate->course_title,
+                'course_description' => $certificate->course_description,
+                'completion_percentage' => $certificate->completion_percentage,
+                'grade' => $certificate->grade,
+                'instructor_name' => $certificate->instructor_name,
+                'issued_by' => $certificate->issued_by,
+                'course_completed_at' => $certificate->course_completed_at->format('F d, Y'),
+                'created_at' => $certificate->created_at->format('F d, Y'),
+            ]
+        ]);
+    }
+
+    /**
      * Public certificate verification page
      */
     public function verify($code = null)

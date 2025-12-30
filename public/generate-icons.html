@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Generate PWA Icons</title>
+</head>
+
+<body>
+    <h1>Generate PWA Icons</h1>
+    <canvas id="canvas192" width="192" height="192"></canvas>
+    <canvas id="canvas512" width="512" height="512"></canvas>
+    <br>
+    <button onclick="download192()">Download 192x192</button>
+    <button onclick="download512()">Download 512x512</button>
+
+    <script>
+        function drawIcon(canvas) {
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+
+            // Background
+            ctx.fillStyle = '#10B981';
+            ctx.fillRect(0, 0, size, size);
+
+            // Book shape
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = size * 0.06;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            const padding = size * 0.27;
+            const centerX = size / 2;
+
+            // Left page
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.quadraticCurveTo(centerX - size * 0.05, padding + size * 0.05, centerX, padding + size * 0.06);
+            ctx.lineTo(centerX, size - padding);
+            ctx.quadraticCurveTo(centerX - size * 0.05, size - padding - size * 0.05, padding, size - padding);
+            ctx.lineTo(padding, padding);
+            ctx.stroke();
+
+            // Right page
+            ctx.beginPath();
+            ctx.moveTo(size - padding, padding);
+            ctx.quadraticCurveTo(centerX + size * 0.05, padding + size * 0.05, centerX, padding + size * 0.06);
+            ctx.lineTo(centerX, size - padding);
+            ctx.quadraticCurveTo(centerX + size * 0.05, size - padding - size * 0.05, size - padding, size - padding);
+            ctx.lineTo(size - padding, padding);
+            ctx.stroke();
+
+            // Center line
+            ctx.beginPath();
+            ctx.moveTo(centerX, padding + size * 0.06);
+            ctx.lineTo(centerX, size - padding);
+            ctx.stroke();
+        }
+
+        drawIcon(document.getElementById('canvas192'));
+        drawIcon(document.getElementById('canvas512'));
+
+        function download192() {
+            const canvas = document.getElementById('canvas192');
+            const link = document.createElement('a');
+            link.download = 'icon-192.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function download512() {
+            const canvas = document.getElementById('canvas512');
+            const link = document.createElement('a');
+            link.download = 'icon-512.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+
+</html>

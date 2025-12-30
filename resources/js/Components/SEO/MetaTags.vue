@@ -1,68 +1,58 @@
-<template>
-    <Head>
-        <title>{{ fullTitle }}</title>
-        <meta name="description" :content="description" />
-        <meta name="keywords" :content="keywords" />
-        <link rel="canonical" :href="canonicalUrl" />
-        
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" :content="ogType" />
-        <meta property="og:url" :content="canonicalUrl" />
-        <meta property="og:title" :content="fullTitle" />
-        <meta property="og:description" :content="description" />
-        <meta property="og:image" :content="image" />
-        <meta property="og:site_name" content="QuranLearn" />
-        
-        <!-- Twitter -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" :content="canonicalUrl" />
-        <meta name="twitter:title" :content="fullTitle" />
-        <meta name="twitter:description" :content="description" />
-        <meta name="twitter:image" :content="image" />
-        
-        <!-- Additional Meta Tags -->
-        <meta name="robots" content="index, follow" />
-        <meta name="author" content="QuranLearn" />
-        <meta name="language" content="English" />
-    </Head>
-</template>
-
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
 const props = defineProps({
     title: {
         type: String,
-        required: true
+        required: true,
     },
     description: {
         type: String,
-        required: true
+        default: 'Learn Quran online with expert teachers. Hifz, Tajweed, and Islamic studies for all ages.',
     },
     keywords: {
         type: String,
-        default: 'Quran learning, Quran courses, Islamic education, Tajweed, Hifz, Quran recitation'
+        default: 'quran, learn quran, online quran, hifz, tajweed, islamic studies',
     },
     image: {
         type: String,
-        default: '/images/og-default.jpg'
+        default: '/images/og-default.jpg', // Make sure this exists or use a logo
     },
-    ogType: {
+    url: {
         type: String,
-        default: 'website'
+        default: '',
     },
-    canonical: {
+    type: {
         type: String,
-        default: null
-    }
+        default: 'website',
+    },
 });
 
-const fullTitle = computed(() => {
-    return props.title ? `${props.title} | QuranLearn` : 'QuranLearn - Learn Quran Online with Expert Teachers';
-});
-
-const canonicalUrl = computed(() => {
-    return props.canonical || window.location.href;
-});
+const siteName = 'QuranLearn';
 </script>
+
+<template>
+    <Head>
+        <title>{{ title }}</title>
+        <meta name="description" :content="description" />
+        <meta name="keywords" :content="keywords" />
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" :content="type" />
+        <meta property="og:url" :content="url || $page.url" />
+        <meta property="og:title" :content="title" />
+        <meta property="og:description" :content="description" />
+        <meta property="og:image" :content="image" />
+        <meta property="og:site_name" :content="siteName" />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" :content="url || $page.url" />
+        <meta name="twitter:title" :content="title" />
+        <meta name="twitter:description" :content="description" />
+        <meta name="twitter:image" :content="image" />
+        
+        <!-- Canonical -->
+        <link rel="canonical" :href="url || $page.url" />
+    </Head>
+</template>

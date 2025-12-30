@@ -133,6 +133,12 @@ const filteredStudents = computed(() => {
                             :style="{ width: `${student.progress}%` }"
                         ></div>
                     </div>
+                    <Link 
+                        :href="`/teacher/students/${student.enrollment_id}/progress`"
+                        class="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all shadow-sm hover:shadow-md text-sm"
+                    >
+                        📊 Update Progress
+                    </Link>
                 </div>
             </div>
             <div v-else class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">

@@ -27,11 +27,13 @@ class User extends Authenticatable
         'timezone',
         'language',
         'country_code',
+        'country',
         'avatar',
         'is_active',
         'points',
         'last_login_at',
         'password',
+        'google_id',
     ];
 
     /**

@@ -1,6 +1,6 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import MetaTags from '@/Components/SEO/MetaTags.vue';
 import { seoConfig } from '@/utils/seo.js';

@@ -31,8 +31,8 @@ class Certificate extends Model
     ];
 
     protected $casts = [
-        'course_started_at' => 'date',
-        'course_completed_at' => 'date',
+        'course_started_at' => 'datetime',
+        'course_completed_at' => 'datetime',
         'completion_percentage' => 'decimal:2',
         'grade' => 'decimal:2',
         'is_verified' => 'boolean',
@@ -78,12 +78,12 @@ class Certificate extends Model
 
     /**
      * Generate unique verification code
-     * Format: XXXX-XXXX-XXXX
+     * Format: XXXXXXXXXX (10 chars)
      */
     public static function generateVerificationCode(): string
     {
         do {
-            $code = strtoupper(Str::random(4) . '-' . Str::random(4) . '-' . Str::random(4));
+            $code = strtoupper(Str::random(10));
         } while (self::where('verification_code', $code)->exists());
 
         return $code;

@@ -46,11 +46,19 @@ const groupByDate = (classes) => {
 
     <TeacherLayout>
         <template #header>
-            <div>
-                <h2 class="font-display text-xl font-bold text-gray-900">
-                    Full Schedule 📅
-                </h2>
-                <p class="text-gray-500 text-sm">Your upcoming classes for the next 2 weeks</p>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white">
+                        Full Schedule 📅
+                    </h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Your upcoming classes for the next 2 weeks</p>
+                </div>
+                <Link 
+                    href="/teacher/classes/create"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-xl hover:from-emerald-600 hover:to-teal-600 transition shadow-lg hover:shadow-xl"
+                >
+                    ➕ Create Class
+                </Link>
             </div>
         </template>
 

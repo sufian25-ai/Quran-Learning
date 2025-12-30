@@ -263,6 +263,26 @@ onMounted(() => {
                         </button>
                     </form>
 
+                    <!-- Social Login -->
+                    <div class="mt-6">
+                        <div class="relative">
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-gray-200"></div>
+                            </div>
+                            <div class="relative flex justify-center text-sm">
+                                <span class="px-2 bg-white text-gray-500">Or continue with</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <a :href="route('auth.google')" 
+                               class="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all hover:scale-[1.02] group">
+                                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="Google">
+                                <span class="font-medium text-gray-700 group-hover:text-gray-900">Sign in with Google</span>
+                            </a>
+                        </div>
+                    </div>
+
                     <!-- Divider -->
                     <div class="relative my-8">
                         <div class="absolute inset-0 flex items-center">
